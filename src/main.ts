@@ -1,8 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app/app.module';
+import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  app.enableCors();
+  app.use(helmet());
+  // add a global route prefix
+  app.setGlobalPrefix('api/v1');
+  //
+  app.useGlobalPipes(new ValidationPipe());
+  //
+  await app.listen(process.env.EXPRESS_PORT);
 }
 bootstrap();

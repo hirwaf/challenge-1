@@ -2,10 +2,11 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript.
 
-## Installation
+## Setting Up
 
 ```bash
 $ yarn install
+$ cp .env.example .env
 ```
 
 ## Running the app
@@ -19,17 +20,4 @@ $ yarn run start:dev
 
 # production mode
 $ yarn run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
 ```
