@@ -7,6 +7,7 @@
 ```bash
 $ yarn install
 $ cp .env.example .env
+$ yarn run seed:run
 ```
 
 ## Running the app
@@ -20,4 +21,9 @@ $ yarn run start:dev
 
 # production mode
 $ yarn run start:prod
+```
+## Default Credentials
+```
+Username: admin
+Password: changeme
 ```
