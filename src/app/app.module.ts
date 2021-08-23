@@ -3,9 +3,9 @@ import 'reflect-metadata';
 import { ConfigModule, ConfigService } from 'nestjs-config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as path from 'path';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { ClientModule } from './client/client.module';
 
 const ENV = process.env.NODE_ENV;
 //
@@ -21,17 +21,9 @@ const ENV = process.env.NODE_ENV;
       useFactory: (config: ConfigService) => config.get('database'),
       inject: [ConfigService],
     }),
-    ClientsModule.register([
-      {
-        name: 'CACHE_SERVICE',
-        transport: Transport.REDIS,
-        options: {
-          url: process.env.REDIS_URL,
-        },
-      },
-    ]),
     AuthModule,
     UserModule,
+    ClientModule,
   ],
 })
 export class AppModule {}
