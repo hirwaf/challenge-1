@@ -6,6 +6,7 @@ import * as path from 'path';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ClientModule } from './client/client.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 const ENV = process.env.NODE_ENV;
 //
@@ -21,6 +22,9 @@ const ENV = process.env.NODE_ENV;
       useFactory: (config: ConfigService) => config.get('database'),
       inject: [ConfigService],
     }),
+    //
+    MongooseModule.forRoot(process.env.MONGO_URL),
+    //
     AuthModule,
     UserModule,
     ClientModule,

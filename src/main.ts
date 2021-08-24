@@ -11,9 +11,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   //
   app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.REDIS,
+    transport: Transport.NATS,
     options: {
-      url: process.env.REDIS_URL,
+      servers: [process.env.NATS_URL],
+      queue: 'process_queue',
     },
   });
   //

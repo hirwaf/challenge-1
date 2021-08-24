@@ -3,9 +3,11 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Logger,
   Param,
   ParseUUIDPipe,
   Post,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,15 +17,11 @@ import { HttpResponse } from '../../helpers/JsonResponse';
 import * as XLSX from 'xlsx';
 import { ClientService } from './client.service';
 import { UploadedDataDto } from './dto/uploaded.data.dto';
-import {
-  Ctx,
-  MessagePattern,
-  Payload,
-  RedisContext,
-} from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('client')
 export class ClientController {
+  logger = new Logger('ClientController');
   constructor(private readonly clientService: ClientService) {}
   /**
    * Import clients from excel file
@@ -79,26 +77,25 @@ export class ClientController {
    */
   @MessagePattern('processing-excel-data')
   async dataProcessing(@Payload() uploadedData: UploadedDataDto) {
-    const processId = uploadedData.id;
-    const cache = await this.clientService.getDataFromCache(processId);
-    console.log([
-      processId,
-      uploadedData.excelData.length,
-      uploadedData.chunkNumber,
-      cache,
-    ]);
+    await this.clientService.processingData(uploadedData);
+  }
+
+  @Post('import/:id/commit')
+  async commitImportedData(@Param('id', ParseUUIDPipe) id: string) {
+    const committing = await this.clientService.commitImportedData(id);
+    //
+    return committing;
   }
 
   /**
    * Reviewing imported data
    * @param id
+   * @param req
    */
   @Get('import/:id/review')
-  async importReview(@Param('id', ParseUUIDPipe) id: string) {
+  async importedDataReview(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
     try {
-      const data = await this.clientService.getDataFromCache(id);
-      console.log(data);
-      return data;
+      return await this.clientService.getDataFromCache(id, req.query);
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

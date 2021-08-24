@@ -5,10 +5,16 @@ import { ClientController } from './client.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientEntity } from './entities/client.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RedisModule } from 'nestjs-redis';
+import { MongooseModule } from '@nestjs/mongoose';
+import { DataList, DataListSchema } from './schemas/data.list';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ClientEntity]),
+    MongooseModule.forFeature([
+      { name: DataList.name, schema: DataListSchema },
+    ]),
     CacheModule.register({
       store: redisStore,
       url: process.env.REDIS_URL,
@@ -16,12 +22,17 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ClientsModule.register([
       {
         name: 'EXCEL_SERVICE',
-        transport: Transport.REDIS,
+        transport: Transport.NATS,
         options: {
-          url: process.env.REDIS_URL,
+          servers: [process.env.NATS_URL],
         },
       },
     ]),
+    RedisModule.register({
+      url: process.env.REDIS_URL,
+      keyPrefix: 'rssb_',
+      keepAlive: 1000 * 3600,
+    }),
   ],
   providers: [ClientService],
   controllers: [ClientController],
