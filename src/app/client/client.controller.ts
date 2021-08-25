@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -18,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { ClientService } from './client.service';
 import { UploadedDataDto } from './dto/uploaded.data.dto';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('client')
 export class ClientController {
@@ -25,9 +27,9 @@ export class ClientController {
   constructor(private readonly clientService: ClientService) {}
   /**
    * Import clients from excel file
-   *
    * @param uploadedFile
    */
+  @UseGuards(JwtAuthGuard)
   @Post('import')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -80,11 +82,22 @@ export class ClientController {
     await this.clientService.processingData(uploadedData);
   }
 
+  /**
+   * Committing imported Data
+   * @param id
+   */
+  @UseGuards(JwtAuthGuard)
   @Post('import/:id/commit')
   async commitImportedData(@Param('id', ParseUUIDPipe) id: string) {
     const committing = await this.clientService.commitImportedData(id);
     //
-    return committing;
+    return HttpResponse(
+      committing.message,
+      {
+        totalInserted: committing.total,
+      },
+      committing.status,
+    );
   }
 
   /**
@@ -92,6 +105,7 @@ export class ClientController {
    * @param id
    * @param req
    */
+  @UseGuards(JwtAuthGuard)
   @Get('import/:id/review')
   async importedDataReview(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
     try {

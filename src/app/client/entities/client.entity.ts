@@ -8,8 +8,8 @@ import {
 
 @Entity('clients')
 export class ClientEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ nullable: true })
   names: string;
@@ -27,7 +27,7 @@ export class ClientEntity {
   email: string;
 
   @Column({ nullable: true })
-  importId: string;
+  processId: string;
 
   @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

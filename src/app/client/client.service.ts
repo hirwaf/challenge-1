@@ -56,7 +56,7 @@ export class ClientService {
       const id: string = uuid();
       let chunkNumber = 1;
       //
-      const chunkData = splitToBulks(data);
+      const chunkData = splitToBulks(data, 1000);
       const cacheData = new CachedDataDto({
         id,
         totalPushed: data.length,
@@ -172,15 +172,48 @@ export class ClientService {
 
   /**
    * Commit imported data
-   * @param manager
    * @param id
    */
-  @Transaction()
-  async commitImportedData(
-    @TransactionManager() manager: EntityManager,
-    id: string,
-  ) {
-    const data = await this.dataList.find({ processId: id });
-
+  async commitImportedData(id: string) {
+    try {
+      const data = await this.dataList
+        .find({ processId: id })
+        .select(['names', 'nid', 'phoneNumber', 'gender', 'email', 'processId'])
+        .exec();
+      //
+      if (data.length > 0) {
+        const trans = await this.clientRepository.manager.transaction(
+          async (entityManager) => {
+            const chunkData = splitToBulks(data, 1000);
+            console.debug(chunkData.length);
+            for (const chunk of chunkData) {
+              await this.clientRepository.insert(chunk);
+            }
+          },
+        );
+        if (trans === undefined) {
+          await this.cacheManager.del(id);
+          await this.dataList.deleteMany({ processId: id });
+        }
+        return {
+          status: HttpStatus.CREATED,
+          message: 'Data Committed successfully',
+          total: data.length,
+        };
+      } else {
+        return {
+          status: HttpStatus.NOT_FOUND,
+          message: 'Process not found',
+          total: 0,
+        };
+      }
+    } catch (e) {
+      this.logger.log(e.message);
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to commit data',
+        total: 0,
+      };
+    }
   }
 }

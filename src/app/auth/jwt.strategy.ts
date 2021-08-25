@@ -1,8 +1,9 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from '../user/user.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private userService: UserService) {
     super({
@@ -24,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         return { id: user.id, username: user.username };
       }
     } catch (e) {
-      console.log(e.getMessage());
+      console.error(e);
     }
     throw new UnauthorizedException();
   }
